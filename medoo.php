@@ -3,65 +3,71 @@
  * Medoo database framework
  * http://medoo.in
  * Version 0.8.2
- * 
+ *
  * Copyright 2013, Angel Lai
  * Released under the MIT license
  */
-class medoo
-{
+ class medoo {
+
+
+	/* database type( mysql, mssql, sybase, sqlite) */
 	protected $database_type = 'mysql';
 
-	// For MySQL, MSSQL, Sybase
-	protected $server = 'localhost';
-	
+
+	/*  login database account config, for mysql,mssql,sybase */
+	protected $server   = 'localhost';
 	protected $username = 'username';
-	
 	protected $password = 'password';
 
-	// For SQLite
+
+	/* if database type is sqlite,databse file path */
 	protected $database_file = '';
 
-	// Optional
-	protected $charset = 'utf8';
+
+	/* optional */
+	protected $charset       = 'utf8';
 	protected $database_name = '';
-	protected $option = array();
-	
-	public function __construct($options)
-	{
+	protected $option        = array();
+
+
+
+
+	/**
+	 * construct
+	 *
+	 * @param miexd $options init database config
+	 */
+	public function __construct($options) {
+
 		try {
 			$type = strtolower($this->database_type);
-
-			if (is_string($options))
-			{
-				if ($type == 'sqlite')
-				{
+			if (is_string($options)) {
+				if ($type == 'sqlite') {
 					$this->database_file = $options;
-				}
-				else
-				{
+				} else {
 					$this->database_name = $options;
 				}
-			}
-			else
-			{
-				foreach ($options as $option => $value)
-				{
+
+			} else {
+				foreach ($options as $option => $value) {
 					$this->$option = $value;
 				}
 			}
 
-			$type = strtolower($this->database_type);
+
+			/* according to the type of database connection */
 			switch ($type)
 			{
 				case 'mysql':
 				case 'pgsql':
 					$this->pdo = new PDO(
-						$type . ':host=' . $this->server . ';dbname=' . $this->database_name, 
+						$type . ':host=' . $this->server . ';dbname=' . $this->database_name,
 						$this->username,
 						$this->password,
 						$this->option
 					);
 					break;
+
 
 				case 'mssql':
 				case 'sybase':
@@ -73,6 +79,7 @@ class medoo
 					);
 					break;
 
+
 				case 'sqlite':
 					$this->pdo = new PDO(
 						$type . ':' . $this->database_file,
@@ -81,33 +88,35 @@ class medoo
 					break;
 			}
 			$this->pdo->exec('SET NAMES \'' . $this->charset . '\'');
-		}
-		catch (PDOException $e) {
+
+
+		} catch (PDOException $e) {
 			echo $e->getMessage();
 		}
 	}
-	
-	public function query($query)
-	{
+
+
+
+	public function query($query) {
 		$this->queryString = $query;
-		
 		return $this->pdo->query($query);
 	}
 
-	public function exec($query)
-	{
-		$this->queryString = $query;
 
+	public function exec($query) {
+		$this->queryString = $query;
 		return $this->pdo->exec($query);
 	}
 
-	public function quote($string)
-	{
+
+
+	public function quote($string) {
 		return $this->pdo->quote($string);
 	}
 
-	protected function array_quote($array)
-	{
+
+
+	protected function array_quote($array) {
 		$temp = array();
 		foreach ($array as $value)
 		{
@@ -116,7 +125,7 @@ class medoo
 
 		return implode($temp, ',');
 	}
-	
+
 	protected function inner_conjunct($data, $conjunctor, $outer_conjunctor)
 	{
 		$haystack = array();
@@ -279,7 +288,7 @@ class medoo
 
 		return $where_clause;
 	}
-		
+
 	public function select($table, $columns, $where = null)
 	{
 		$query = $this->query('SELECT ' . (
@@ -290,7 +299,7 @@ class medoo
 			(is_string($columns) && $columns != '*') ? PDO::FETCH_COLUMN : PDO::FETCH_ASSOC
 		) : false;
 	}
-		
+
 	public function insert($table, $data)
 	{
 		$keys = implode(',', array_keys($data));
@@ -300,10 +309,10 @@ class medoo
 			$values[] = is_array($value) ? serialize($value) : $value;
 		}
 		$this->query('INSERT INTO ' . $table . ' (' . $keys . ') VALUES (' . $this->data_implode(array_values($values), ',') . ')');
-		
+
 		return $this->pdo->lastInsertId();
 	}
-	
+
 	public function update($table, $data, $where = null)
 	{
 		$fields = array();
@@ -329,15 +338,15 @@ class medoo
 				}
 			}
 		}
-		
+
 		return $this->exec('UPDATE ' . $table . ' SET ' . implode(',', $fields) . $this->where_clause($where));
 	}
-	
+
 	public function delete($table, $where)
 	{
 		return $this->exec('DELETE FROM ' . $table . $this->where_clause($where));
 	}
-	
+
 	public function replace($table, $columns, $search = null, $replace = null, $where = null)
 	{
 		if (is_array($columns))
@@ -352,21 +361,17 @@ class medoo
 			}
 			$replace_query = implode(', ', $replace_query);
 			$where = $search;
-		}
-		else
-		{
-			if (is_array($search))
-			{
+		} else {
+			if (is_array($search)) {
 				$replace_query = array();
-				foreach ($search as $replace_search => $replace_replacement)
-				{
+				foreach ($search as $replace_search => $replace_replacement) {
 					$replace_query[] = $columns . ' = REPLACE(' . $columns . ', ' . $this->quote($replace_search) . ', ' . $this->quote($replace_replacement) . ')';
 				}
+
 				$replace_query = implode(', ', $replace_query);
 				$where = $replace;
-			}
-			else
-			{
+
+			} else {
 				$replace_query = $columns . ' = REPLACE(' . $columns . ', ' . $this->quote($search) . ', ' . $this->quote($replace) . ')';
 			}
 		}
@@ -374,59 +379,49 @@ class medoo
 		return $this->exec('UPDATE ' . $table . ' SET ' . $replace_query . $this->where_clause($where));
 	}
 
-	public function get($table, $columns, $where = null)
-	{
-		if (is_array($where))
-		{
-			$where['LIMIT'] = 1;
-		}
-		$data = $this->select($table, $columns, $where);
 
+	public function get($table, $columns, $where = null) {
+		is_array($where) && $where['LIMIT'] = 1;
+		$data = $this->select($table, $columns, $where);
 		return isset($data[0]) ? $data[0] : false;
 	}
 
-	public function has($table, $where)
-	{
+
+	public function has($table, $where) {
 		return $this->query('SELECT EXISTS(SELECT 1 FROM ' . $table . $this->where_clause($where) . ')')->fetchColumn() === '1';
 	}
 
-	public function count($table, $where = null)
-	{
+	public function count($table, $where = null) {
 		return 0 + ($this->query('SELECT COUNT(*) FROM ' . $table . $this->where_clause($where))->fetchColumn());
 	}
 
-	public function max($table, $column, $where = null)
-	{
+	public function max($table, $column, $where = null) {
 		return 0 + ($this->query('SELECT MAX(' . $column . ') FROM ' . $table . $this->where_clause($where))->fetchColumn());
 	}
 
-	public function min($table, $column, $where = null)
-	{
+	public function min($table, $column, $where = null) {
 		return 0 + ($this->query('SELECT MIN(' . $column . ') FROM ' . $table . $this->where_clause($where))->fetchColumn());
 	}
 
-	public function avg($table, $column, $where = null)
-	{
+	public function avg($table, $column, $where = null) {
 		return 0 + ($this->query('SELECT AVG(' . $column . ') FROM ' . $table . $this->where_clause($where))->fetchColumn());
 	}
 
-	public function sum($table, $column, $where = null)
-	{
+	public function sum($table, $column, $where = null) {
 		return 0 + ($this->query('SELECT SUM(' . $column . ') FROM ' . $table . $this->where_clause($where))->fetchColumn());
 	}
 
-	public function error()
-	{
+
+	public function error() {
 		return $this->pdo->errorInfo();
 	}
 
-	public function last_query()
-	{
+	public function last_query() {
 		return $this->queryString;
 	}
 
-	public function info()
-	{
+
+	public function info() {
 		return array(
 			'server' => $this->pdo->getAttribute(PDO::ATTR_SERVER_INFO),
 			'client' => $this->pdo->getAttribute(PDO::ATTR_CLIENT_VERSION),
