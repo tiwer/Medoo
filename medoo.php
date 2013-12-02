@@ -8,17 +8,17 @@
  * Released under the MIT license
  */
  class medoo {
-
+	
 	/* database type( mysql, mssql, sybase, sqlite) */
 	protected $database_type = 'mysql';
 
-
+	
 	/*  login database account config, for mysql,mssql,sybase */
 	protected $server   = 'localhost';
 	protected $username = 'username';
 	protected $password = 'password';
 
-
+	
 	/* if database type is sqlite,databse file path */
 	protected $database_file = '';
 
@@ -37,10 +37,12 @@
 	 * @param miexd $options init database config
 	 */
 	public function __construct($options) {
-		try {
+		try {			
+			/* database type conver lowert */
 			$type = strtolower($this->database_type);
+			
+			
 			if (is_string($options)) {
-
 				/* objcet attribute assignment */
 				if ($type == 'sqlite') {
 					$this->database_file = $options;
@@ -48,19 +50,17 @@
 					$this->database_name = $options;
 				}
 
-
 			} else {
 				/* objcet attribute assignment */
 				foreach ($options as $option => $value) {
 					$this->$option = $value;
 				}
 			}
-
-
+			
 			/* according to the type of database connection */
 			if ( $type!='sqlite' && isset($this->port) && intval($this->port)>0 ) {
 				$port = 'port=' . $this->port . ';';
-			}
+			} 
 
 
 			/* according to the type of database connection */
@@ -76,7 +76,6 @@
 					);
 					break;
 
-
 				case 'mssql':
 				case 'sybase':
 					$this->pdo = new PDO(
@@ -87,7 +86,6 @@
 					);
 					break;
 
-
 				case 'sqlite':
 					$this->pdo = new PDO(
 						$type . ':' . $this->database_file,
@@ -96,7 +94,6 @@
 					break;
 			}
 			$this->pdo->exec('SET NAMES \'' . $this->charset . '\'');
-
 
 		} catch (PDOException $e) {
 			throw new Exception($e->getMessage());
@@ -156,7 +153,7 @@
 		$where_clause = '';
 		if (is_array($where)) {
 			$single_condition = array_diff_key($where, array_flip(
-					explode(' ', 'AND OR GROUP ORDER HAVING LIMIT LIKE MATCH')
+				explode(' ', 'AND OR GROUP ORDER HAVING LIMIT LIKE MATCH')
 			));
 
 
@@ -169,7 +166,6 @@
 			if (isset($where['OR'])) {
 				$where_clause = ' WHERE ' . $this->data_implode($where['OR'], ' OR');
 			}
-
 
 			if (isset($where['LIKE'])) {
 				$like_query = $where['LIKE'];
@@ -199,7 +195,6 @@
 					$where_clause .= ($where_clause != '' ? ' AND ' : ' WHERE ') . '(' . implode($clause_wrap, ' ' . $connector . ' ') . ')';
 				}
 			}
-
 
 			if (isset($where['MATCH'])) {
 				$match_query = $where['MATCH'];
@@ -235,23 +230,14 @@
 				}
 			}
 
-
 		} else {
 			$where_clause .= $where != null ? ' ' . $where : '';
 		}
 		return $where_clause;
 	}
-
-
-	/**
-	 *
-	 * @param string $table
-	 * @param string $join
-	 * @param string $columns
-	 * @param string $where
-	 *
-	 * @return boolean
-	 */
+	
+	
+	
 	public function select($table, $join, $columns = null, $where = null) {
 		$table = '`' . $table . '`';
 		if ($where) {
@@ -263,14 +249,12 @@
 					'><' => 'INNER'
 			);
 
-
 			foreach($join as $sub_table => $relation) {
 				preg_match('/(\[(\<|\>|\>\<|\<\>)\])?([a-zA-Z0-9_\-]*)/', $sub_table, $match);
 				if ($match[2] != '' && $match[3] != '') {
 					if (is_string($relation)) {
 						$relation = 'USING (`' . $relation . '`)';
 					}
-
 					if (is_array($relation)) {
 						if (isset($relation[0])) {
 							/*  For ['column1', 'column2'] */
@@ -292,14 +276,12 @@
 		$query =
 		$this->query('SELECT ' .
 				(
-						is_array($columns) ? $this->column_quote( implode('`, `', $columns) ) :
-						($columns == '*' ? '*' : '`' . $columns . '`')
-				) .
+					is_array($columns) ? $this->column_quote( implode('`, `', $columns) ) :
+					($columns == '*' ? '*' : '`' . $columns . '`')
+				) . 
 				' FROM ' . $table . $where_clause
 		);
-		return $query ? $query->fetchAll(
-				(is_string($columns) && $columns != '*') ? PDO::FETCH_COLUMN : PDO::FETCH_ASSOC
-		) : false;
+		return $query ? $query->fetchAll((is_string($columns) && $columns != '*') ? PDO::FETCH_COLUMN : PDO::FETCH_ASSOC) : false;
 	}
 
 
