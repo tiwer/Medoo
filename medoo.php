@@ -100,7 +100,7 @@
 		}
 	}
 
-
+	
 	/**
 	 * SQL query
 	 *
@@ -156,7 +156,6 @@
 				explode(' ', 'AND OR GROUP ORDER HAVING LIMIT LIKE MATCH')
 			));
 
-
 			if ($single_condition != array()) {
 				$where_clause = ' WHERE ' . $this->data_implode($single_condition, '');
 			}
@@ -166,12 +165,12 @@
 			if (isset($where['OR'])) {
 				$where_clause = ' WHERE ' . $this->data_implode($where['OR'], ' OR');
 			}
+			
 
 			if (isset($where['LIKE'])) {
 				$like_query = $where['LIKE'];
 				if (is_array($like_query)) {
 					$is_OR = isset($like_query['OR']);
-
 
 					if ($is_OR || isset($like_query['AND'])) {
 						$connector = $is_OR ? 'OR' : 'AND';
@@ -305,8 +304,6 @@
 					break;
 			}
 		}
-
-
 		$this->exec('INSERT INTO `' . $table . '` (`' . $keys . '`) VALUES (' . implode($values, ', ') . ')');
 		return $this->pdo->lastInsertId();
 	}
@@ -446,6 +443,10 @@
 		);
 	}
 
+	
+	
+	
+	
 
 /*------------------------------------------------------ */
 //-- PROTECTED FUNCTION
