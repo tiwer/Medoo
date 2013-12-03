@@ -8,6 +8,8 @@
  * Released under the MIT license
  */
  class medoo {
+	/* pdo object */
+	public $pdo;
 	
 	/* database type( mysql, mssql, sybase, sqlite) */
 	protected $database_type = 'mysql';
@@ -30,7 +32,6 @@
 	protected $option        = array();
 
 
-
 	/**
 	 * construct
 	 *
@@ -38,68 +39,51 @@
 	 */
 	public function __construct($options) {
 		try {			
-			/* database type conver lowert */
+			
+			/* connection string */
+			$conn_config = '';
 			$type = strtolower($this->database_type);
-			
-			
-			if (is_string($options)) {
-				/* objcet attribute assignment */
-				if ($type == 'sqlite') {
-					$this->database_file = $options;
-				} else {
-					$this->database_name = $options;
-				}
-
+			if( $type=='sqlite' && is_string($options) ) {
+				$this->database_file = $options;
+				$conn_config = "{$type}:{$this->database_file}";			
+				
+				
 			} else {
 				/* objcet attribute assignment */
-				foreach ($options as $option => $value) {
-					$this->$option = $value;
+				if( is_string($options) ) {
+					$this->database_name = $options;
+				} else {				
+					foreach ($options as $option => $value) {
+						$this->$option = $value;
+					}
 				}
-			}
+				
+				/* database server port */
+				$port = (isset($this->port) && intval($this->port)>0) ? 'port=' . $this->port . ';' : '';
+				
+				/* mssql sybase */
+				$conn_config = "$type:host={$this->server};{$port}dbname={$this->database_name},{$this->username},{$this->password}";
+				
+				/* mysql pgsql */
+				$conn_config = "$type:host=$this->server;{$port}dbname='.{$this->database_name}";
+			}			
 			
-			/* according to the type of database connection */
-			if ( $type!='sqlite' && isset($this->port) && intval($this->port)>0 ) {
-				$port = 'port=' . $this->port . ';';
-			} 
-
-
-			/* according to the type of database connection */
-			switch ($type)
-			{
-				case 'mysql':
-				case 'pgsql':
-					$this->pdo = new PDO(
-						$type . ':host=' . $this->server . ';' . $port . 'dbname=' . $this->database_name,
-						$this->username,
-						$this->password,
-						$this->option
-					);
-					break;
-
-				case 'mssql':
-				case 'sybase':
-					$this->pdo = new PDO(
-						$type . ':host=' . $this->server . ';' . $port . 'dbname=' . $this->database_name . ',' .
-						$this->username . ',' .
-						$this->password,
-						$this->option
-					);
-					break;
-
-				case 'sqlite':
-					$this->pdo = new PDO(
-						$type . ':' . $this->database_file,
-						$this->option
-					);
-					break;
-			}
+			
+			/* init pdo object */
+			if( $type=='mysql' || $type=='pgsql'  ) {				
+				$this->pdo = new PDO($conn_config, $this->username,	$this->password, $this->option);
+			} else {
+				$this->pdo = new PDO($conn_config, $this->option);
+			}			
+			/* set the database code */
 			$this->pdo->exec('SET NAMES \'' . $this->charset . '\'');
-
+			
 		} catch (PDOException $e) {
 			throw new Exception($e->getMessage());
 		}
 	}
-
+	
+	
 	
 	
 	
@@ -107,8 +91,7 @@
 /*------------------------------------------------------ */
 //-- PUBLICE FUNCTION
 /*------------------------------------------------------ */
-	
-	
+		
 	/**
 	 * SQL query
 	 *
