@@ -17,8 +17,8 @@
 	
 	/*  login database account config, for mysql,mssql,sybase */
 	protected $server   = 'localhost';
-	protected $username = 'username';
-	protected $password = 'password';
+	protected $username = 'root';
+	protected $password = '';
 
 	
 	/* if database type is sqlite,databse file path */
@@ -91,7 +91,7 @@
 /*------------------------------------------------------ */
 //-- PUBLICE FUNCTION
 /*------------------------------------------------------ */
-		
+
 	/**
 	 * SQL query
 	 *
@@ -227,17 +227,23 @@
 	}
 	
 	
-	
+	/**
+	 * 查询数据
+	 *
+	 * @param string $table     databae table
+	 * @param string $join      
+	 * @param string $columns
+	 * @param string $where
+	 *
+	 * @access public
+	 * 
+	 * @return miexd
+	 */
 	public function select($table, $join, $columns = null, $where = null) {
 		$table = '`' . $table . '`';
 		if ($where) {
 			$table_join = array();
-			$join_array = array(
-					'>' => 'LEFT',
-					'<' => 'RIGHT',
-					'<>' => 'FULL',
-					'><' => 'INNER'
-			);
+			$join_array = array( '>' => 'LEFT', '<' => 'RIGHT', '<>' => 'FULL', '><' => 'INNER');
 
 			foreach($join as $sub_table => $relation) {
 				preg_match('/(\[(\<|\>|\>\<|\<\>)\])?([a-zA-Z0-9_\-]*)/', $sub_table, $match);
@@ -273,6 +279,8 @@
 		);
 		return $query ? $query->fetchAll((is_string($columns) && $columns != '*') ? PDO::FETCH_COLUMN : PDO::FETCH_ASSOC) : false;
 	}
+
+
 
 
 	public function insert($table, $data) {
