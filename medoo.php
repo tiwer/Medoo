@@ -75,18 +75,14 @@
 			} else {
 				$this->pdo = new PDO($conn_config, $this->option);
 			}			
-			/* set the database code */
+			/* set the database charset */
 			$this->pdo->exec('SET NAMES \'' . $this->charset . '\'');
 			
 		} catch (PDOException $e) {
 			throw new Exception($e->getMessage());
 		}
 	}
-	
-	
-	
-	
-	
+		
 	
 /*------------------------------------------------------ */
 //-- PUBLICE FUNCTION
@@ -228,16 +224,16 @@
 	
 	
 	/**
-	 * 查询数据
+	 * Select data from database
 	 *
-	 * @param string $table     databae table
-	 * @param string $join      
-	 * @param string $columns
-	 * @param string $where
+	 * @param string $table       The table name.
+	 * @param string $join        Table relativity for table joining. Ignore it if no table joining required.
+	 * @param string $columns     The target columns of data will be fetched.
+	 * @param string $where       The WHERE clause to filter records.
 	 *
 	 * @access public
 	 * 
-	 * @return miexd
+	 * @return array
 	 */
 	public function select($table, $join, $columns = null, $where = null) {
 		$table = '`' . $table . '`';
