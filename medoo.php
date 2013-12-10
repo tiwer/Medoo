@@ -84,6 +84,7 @@
 	}
 		
 	
+	
 /*------------------------------------------------------ */
 //-- PUBLICE FUNCTION
 /*------------------------------------------------------ */
@@ -373,67 +374,65 @@
 		return $this->exec('UPDATE `' . $table . '` SET ' . $replace_query . $this->where_clause($where));
 	}
 
-
-	public function get($table, $columns, $where = null)
-	{
-		if (!isset($where))
-		{
-			$where = array();
-		}
+	/**
+	 * This function get only one record.
+	 *
+	 * @param string        $table   table
+	 * @param string/array  $columns columns
+	 * @param array         $where   where
+	 *
+	 * @access public
+	 */
+	public function get($table, $columns, $where = null) {
+		$where = isset($where) ? $where : array();
 		$where['LIMIT'] = 1;
-
 		$data = $this->select($table, $columns, $where);
-
 		return isset($data[0]) ? $data[0] : false;
 	}
 
-	public function has($table, $where)
-	{
+
+	public function has($table, $where) {
 		return $this->query('SELECT EXISTS(SELECT 1 FROM `' . $table . '`' . $this->where_clause($where) . ')')->fetchColumn() === '1';
 	}
 
-	public function count($table, $where = null)
-	{
+	public function count($table, $where = null) {
 		return 0 + ($this->query('SELECT COUNT(*) FROM `' . $table . '`' . $this->where_clause($where))->fetchColumn());
 	}
 
-	public function max($table, $column, $where = null)
-	{
+	public function max($table, $column, $where = null) {
 		return 0 + ($this->query('SELECT MAX(`' . $column . '`) FROM `' . $table . '`' . $this->where_clause($where))->fetchColumn());
 	}
-
-	public function min($table, $column, $where = null)
-	{
+	public function min($table, $column, $where = null) {
 		return 0 + ($this->query('SELECT MIN(`' . $column . '`) FROM `' . $table . '`' . $this->where_clause($where))->fetchColumn());
 	}
 
-	public function avg($table, $column, $where = null)
-	{
+	public function avg($table, $column, $where = null) {
 		return 0 + ($this->query('SELECT AVG(`' . $column . '`) FROM `' . $table . '`' . $this->where_clause($where))->fetchColumn());
 	}
 
-	public function sum($table, $column, $where = null)
-	{
+	public function sum($table, $column, $where = null) {
 		return 0 + ($this->query('SELECT SUM(`' . $column . '`) FROM `' . $table . '`' . $this->where_clause($where))->fetchColumn());
 	}
 
-	public function error()
-	{
+	public function error() {
 		return $this->pdo->errorInfo();
 	}
 
-	public function last_query()
-	{
+	public function last_query() {
 		return $this->queryString;
 	}
 
-	public function info()
-	{
+	/**
+	 * It returned a lot of useful information of database
+	 *
+	 * @access public
+	 */
+	public function info() {
 		return array(
-				'server' => $this->pdo->getAttribute(PDO::ATTR_SERVER_INFO),
-				'client' => $this->pdo->getAttribute(PDO::ATTR_CLIENT_VERSION),
-				'driver' => $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME),
-				'version' => $this->pdo->getAttribute(PDO::ATTR_SERVER_VERSION),
+				'server'     => $this->pdo->getAttribute(PDO::ATTR_SERVER_INFO),
+				'client'     => $this->pdo->getAttribute(PDO::ATTR_CLIENT_VERSION),
+				'driver'     => $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME),
+				'version'    => $this->pdo->getAttribute(PDO::ATTR_SERVER_VERSION),
 				'connection' => $this->pdo->getAttribute(PDO::ATTR_CONNECTION_STATUS)
 		);
 	}
@@ -507,6 +506,9 @@
 							}
 						}
 					}
+					
+					
+					
 				} else {
 					if (is_int($key)) {
 						$wheres[] = $this->quote($value);
@@ -537,6 +539,5 @@
 		}
 		return implode($conjunctor . ' ', $wheres);
 	}
-
-
+	
  }
