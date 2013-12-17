@@ -10,17 +10,17 @@
  class medoo {
 	/* pdo object */
 	public $pdo;
-	
+
 	/* database type( mysql, mssql, sybase, sqlite) */
 	protected $database_type = 'mysql';
 
-	
+
 	/*  login database account config, for mysql,mssql,sybase */
 	protected $server   = 'localhost';
 	protected $username = 'root';
 	protected $password = '';
 
-	
+
 	/* if database type is sqlite,databse file path */
 	protected $database_file = '';
 
@@ -38,53 +38,55 @@
 	 * @param miexd $options init database config
 	 */
 	public function __construct($options) {
-		try {			
-			
+		try {
+
 			/* connection string */
 			$conn_config = '';
 			$type = strtolower($this->database_type);
 			if( $type=='sqlite' && is_string($options) ) {
 				$this->database_file = $options;
-				$conn_config = "{$type}:{$this->database_file}";			
-				
-				
+				$conn_config = "{$type}:{$this->database_file}";
+
+
 			} else {
 				/* objcet attribute assignment */
 				if( is_string($options) ) {
 					$this->database_name = $options;
-				} else {				
+				} else {
 					foreach ($options as $option => $value) {
 						$this->$option = $value;
 					}
 				}
-				
+
 				/* database server port */
 				$port = (isset($this->port) && intval($this->port)>0) ? 'port=' . $this->port . ';' : '';
-				
+
 				/* mssql sybase */
 				$conn_config = "$type:host={$this->server};{$port}dbname={$this->database_name},{$this->username},{$this->password}";
-				
+
 				/* mysql pgsql */
 				$conn_config = "$type:host=$this->server;{$port}dbname='.{$this->database_name}";
-			}			
-			
-			
+			}
+
+
 			/* init pdo object */
-			if( $type=='mysql' || $type=='pgsql'  ) {				
+			if( $type=='mysql' || $type=='pgsql'  ) {
 				$this->pdo = new PDO($conn_config, $this->username,	$this->password, $this->option);
 			} else {
 				$this->pdo = new PDO($conn_config, $this->option);
-			}			
+			}
 			/* set the database charset */
 			$this->pdo->exec('SET NAMES \'' . $this->charset . '\'');
-			
+
 		} catch (PDOException $e) {
 			throw new Exception($e->getMessage());
 		}
 	}
-		
-	
-	
+
+
+
+
+
 /*------------------------------------------------------ */
 //-- PUBLICE FUNCTION
 /*------------------------------------------------------ */
@@ -153,8 +155,9 @@
 			if (isset($where['OR'])) {
 				$where_clause = ' WHERE ' . $this->data_implode($where['OR'], ' OR');
 			}
-			
 
+
+			/* build SQl content like, database table string   */
 			if (isset($where['LIKE'])) {
 				$like_query = $where['LIKE'];
 				if (is_array($like_query)) {
@@ -222,8 +225,8 @@
 		}
 		return $where_clause;
 	}
-	
-	
+
+
 	/**
 	 * Select data from database
 	 *
@@ -233,7 +236,7 @@
 	 * @param string $where       The WHERE clause to filter records.
 	 *
 	 * @access public
-	 * 
+	 *
 	 * @return array
 	 */
 	public function select($table, $join, $columns = null, $where = null) {
@@ -241,6 +244,7 @@
 		if ($where) {
 			$table_join = array();
 			$join_array = array( '>' => 'LEFT', '<' => 'RIGHT', '<>' => 'FULL', '><' => 'INNER');
+
 
 			foreach($join as $sub_table => $relation) {
 				preg_match('/(\[(\<|\>|\>\<|\<\>)\])?([a-zA-Z0-9_\-]*)/', $sub_table, $match);
@@ -265,14 +269,15 @@
 			$where = $columns;
 			$columns = $join;
 		}
+
+
+
+		/* query sql list retuen */
 		$where_clause = $this->where_clause($where);
-		$query =
-		$this->query('SELECT ' .
-				(
+		$query = $this->query('SELECT ' . (
 					is_array($columns) ? $this->column_quote( implode('`, `', $columns) ) :
 					($columns == '*' ? '*' : '`' . $columns . '`')
-				) . 
-				' FROM ' . $table . $where_clause
+				) .' FROM ' . $table . $where_clause
 		);
 		return $query ? $query->fetchAll((is_string($columns) && $columns != '*') ? PDO::FETCH_COLUMN : PDO::FETCH_ASSOC) : false;
 	}
@@ -311,12 +316,14 @@
 			$key = '`' . $key . '`';
 			if (is_array($value)) {
 				$fields[] = $key . '=' . $this->quote(serialize($value));
+
 			} else {
 				preg_match('/([\w]+)(\[(\+|\-)\])?/i', $key, $match);
 				if (isset($match[3])) {
 					if (is_numeric($value)) {
 						$fields[] = $match[1] . ' = ' . $match[1] . ' ' . $match[3] . ' ' . $value;
 					}
+
 
 				} else {
 					switch (gettype($value))
@@ -341,6 +348,16 @@
 	}
 
 
+	/**
+	 * delte table content list
+	 *
+	 * @param string $table  database tabke the name
+	 * @param miexd  $wher  SQL
+	 *
+	 * Waccess publc
+	 *
+	 * @return The
+	 */
 	public function delete($table, $where) {
 		return $this->exec('DELETE FROM `' . $table . '`' . $this->where_clause($where));
 	}
@@ -373,6 +390,8 @@
 		}
 		return $this->exec('UPDATE `' . $table . '` SET ' . $replace_query . $this->where_clause($where));
 	}
+
+
 
 	/**
 	 * This function get only one record.
@@ -437,10 +456,10 @@
 		);
 	}
 
-	
-	
-	
-	
+
+
+
+
 
 /*------------------------------------------------------ */
 //-- PROTECTED FUNCTION
@@ -506,9 +525,9 @@
 							}
 						}
 					}
-					
-					
-					
+
+
+
 				} else {
 					if (is_int($key)) {
 						$wheres[] = $this->quote($value);
@@ -539,5 +558,5 @@
 		}
 		return implode($conjunctor . ' ', $wheres);
 	}
-	
+
  }
