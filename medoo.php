@@ -8,6 +8,7 @@
  * Released under the MIT license
  */
  class medoo {
+ 	
 	/* pdo object */
 	public $pdo;
 
@@ -309,7 +310,8 @@
 		return $this->pdo->lastInsertId();
 	}
 
-
+	
+	
 	public function update($table, $data, $where = null) {
 		$fields = array();
 		foreach ($data as $key => $value) {
@@ -558,5 +560,4 @@
 		}
 		return implode($conjunctor . ' ', $wheres);
 	}
-
  }
